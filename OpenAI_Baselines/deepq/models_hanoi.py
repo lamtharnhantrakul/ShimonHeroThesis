@@ -37,7 +37,7 @@ def _bimanual_cnn_to_mlp(convs, hiddens, dueling, inpt, num_actions, scope, reus
                 # Apply relu activation to each of the MLP layer
                 action_out = tf.nn.relu(action_out)
 
-            # No activation function, this is a linear output representing the Q value
+            # No activation function, this is a linear output representing the Q value associated with each action
             action_scores = layers.fully_connected(action_out, num_outputs=num_actions, activation_fn=None)
 
         if dueling:
