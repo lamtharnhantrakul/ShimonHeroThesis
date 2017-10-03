@@ -1,0 +1,16 @@
+###########
+#
+#      GPU DOCKER CONTAINER FOR SMARTEAR RESEARCH:
+# MAINTAINED BY: Lamtharn (Hanoi) Hantrakul -- hanoi@smartear.io
+#
+# Please add new pip/apt installs in this block. Don't forget a "&& \" at the end
+# of all non-final lines. Thanks!
+#
+###########
+
+### Pull from Hanoi’s GPU base image for deep learning research
+### For detailed build of this base image see https://github.com/lamtharnhantrakul/docker_base_images
+FROM hanoi7/deeplearningz:latest-gpu-py3
+
+# Install pygame for running shimon simulator
+RUN pip install pygame
