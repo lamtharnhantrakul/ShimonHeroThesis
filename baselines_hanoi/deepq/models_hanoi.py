@@ -41,17 +41,29 @@ def _bimanual_cnn_to_mlp(convs, hiddens, dueling, inpt, num_actions, scope, reus
             action_scores = layers.fully_connected(action_out, num_outputs=num_actions, activation_fn=None)
 
         if dueling:
+            # a dueling DQN splits the fully connected layer into two streams for Q and V
             with tf.variable_scope("state_value"):
+                # In the above code we had `action_out = conv_out`, proceeded by FC layers.
+                # Now we define `state_out = conv_out` since we want to use conv_out activations to determine a separate state value, independant of the action value
                 state_out = conv_out
                 for hidden in hiddens:
                     state_out = layers.fully_connected(state_out, num_outputs=hidden, activation_fn=None)
+
+                    # `layer_norm=False` by default
+                    # This is based on the idea of Layer Normalization on https://www.tensorflow.org/api_docs/python/tf/contrib/layers/layer_norm
                     if layer_norm:
                         state_out = layers.layer_norm(state_out, center=True, scale=True)
+
+                    # Very similar to above line `action_out = tf.nn.relu(action_out)`
                     state_out = tf.nn.relu(state_out)
+
+                # Instead of outputting Q values per action, a DDQN ouputs one single state value, hence `num_outputs = 1`
                 state_score = layers.fully_connected(state_out, num_outputs=1, activation_fn=None)
+
+            # The following 3 steps is explained in the paper [https://arxiv.org/pdf/1511.06581.pdf] in equation (9)
             action_scores_mean = tf.reduce_mean(action_scores, 1)
-            action_scores_centered = action_scores - tf.expand_dims(action_scores_mean, 1)
-            q_out = state_score + action_scores_centered
+            action_scores_centered = action_scores - tf.expand_dims(action_scores_mean, 1)  # need to subtract the mean action scores from the mini-batch action scores (like mean centering)
+            q_out = state_score + action_scores_centered #  verbatim from equation (9). Authors motivate that `q_out = state_score + action_scores` is actually not a good idea
         else:
             q_out = action_scores
         return q_out
